@@ -22,7 +22,8 @@ This session will work with a collection of indexes:
 
 ```{r, eval=TRUE}
 link='https://raw.githubusercontent.com/EvansDataScience/data/master/allIndexes.csv'
-indexes=read.csv(link,stringsAsFactors = F)
+indexes=read.csv(link,stringsAsFactors = F) 
+# stringAsFactors=False tells R to keep columns with text as categorical variables
 
 names(indexes)
 ```
@@ -40,19 +41,22 @@ names(indexes)
 We can check descriptives:
 
 ```{r, eval=TRUE}
-summary(indexes)
+summary(indexes) # gives you descriptive statistics for each variable
 ```
 
 And data types:
 
 ```{r, eval=TRUE}
-str(indexes,width=70,strict.width='cut')
+str(indexes,width=70,strict.width='cut') 
+# str shows you the types of data, cut
 ```
 
 Keep in mind thta the last two ones are categorical. *Presscat* is a categorical representation of the press freedom index:
 
 ```{r, eval=TRUE}
 table(indexes$presscat)
+# to run commands on certain variables, do command$variable
+# table is only useful with categorical variables
 ```
 
 And *enviromentCat* is a representation of environment performance index:
@@ -80,22 +84,27 @@ The other variables in the set could be used as our *explanans* (X), that is, we
 You are comfortable with  **Linear Regression** when you can verify that each variable in X has a linear relationship with Y:
 
 ```{r, eval=TRUE}
-explanans=names(indexes)[c(3:5)]
+explanans=names(indexes)[c(3:5)] #explanans is the elements of variables
 
-for (x in explanans){
+for (x in explanans){ #for each x in explanans, compute the pearson coefficient between that x & environment
     p=cor.test(indexes[,x],indexes$environment)
     
-    if(p$p.value<0.05){
+    if(p$p.value<0.05){ # if p-value is less than 0.05, write this message
         messageYES=paste('environment index is correlated with',x)
         print(messageYES)
         
     }else{
-        messageNO=paste('environment index is NOT correlated with',x)
+        messageNO=paste('environment index is NOT correlated with',x) #if p-value is not <0.05, do this
         print(messageNO)
     }
     
 }
 
+# in R, everything needs to be in parentheses
+# explanans includes all variables from 3:5 
+```
+```{r}
+cor(indexes[,c(3:6)]) # all the rows, only columns 3:6
 ```
 
 The level of correlation is moderate to low. 
@@ -117,6 +126,8 @@ Given the above exploration, we can go and request a linear regression model:
 
 LinRegEPI = lm(environment ~ corruptionIndex + scoreEconomy + scorepress, data = indexes)
 
+#creates LinRegEPI, which stores the results for the linear regression
+# lm is the command to regress environment
 ```
 
 That was it! I just told R that the Y (*environment*) is to be regressed (**~**) by all those X variables (*corruptionIndex + scoreEconomy + scorepressOK*).
@@ -136,17 +147,24 @@ The sign of the coefficient of a X indicates if it affects Y in direct or invers
 * What measure should I use to evaluate the regression as a whole?
 
 ```{r, eval=TRUE}
-summary(LinRegEPI)$adj.r.squared # from 0 to 1, the closer to 1 the better.
+summary(LinRegEPI)$adj.r.squared 
+# from 0 to 1, the closer to 1 the better.
 ```
 
 The way to evaluate a regression does not end here. There may be several issues affecting these results:
 
 * **Residuals**, the difference between what this model predicts Y is ( _Yp_ ), and the actual value of Y, should  be closed to a normal distribution. for that we need to see them along the vertical of the __qqplot__.
 
+
+```{r, eval=FALSEn}
+install.packages("car", dependencies=TRUE)
+```
+
 ```{r, eval=TRUE}
 # normality of residuals?
 library(car)
 qqPlot(LinRegEPI, main="QQ Plot")
+
 ```
 
 
